@@ -1,0 +1,191 @@
+#+TITLE: Jira Jump
+#+DATE: 2023-02-03T10:02:31+01:00
+#+DRAFT: true
+#+PROPERTY: header-args:emacs-lisp :comments link :results none
+
+#+begin_quote
+disclaimer: I know there are multiple jira-to-org extensions available
+already.  For what I've seen thus far is that none of them support
+using multiple instances out of the box.  If I ever find the time to
+look into these packages and figure out a nice solution that may make
+these functions obsolete I will update this post accordingly.
+#+end_quote
+
+* Jira Jump
+  At the company I work we work on multiple projects and those
+  projects belong to multiple clients.  As a result we have a
+  multitude of Jira board spread across multiple Jira instances.
+  Sometimes I just want to be able to quickly jump to either a
+  specific issue (when a coworker mentions it on a video call) or to
+  the board itself.
+
+** Usage
+  To open an issue or the board itself, press =C-c j j= (or =M-x
+  jira-link-dwim ENTER=) in any buffer, and it will open the page in
+  your default browser.
+
+  When you invoke this command the commandline will query you for the
+  project slug of which the completion has been prefilled with all
+  configured project slugs.  Pressing =Enter= on a project slug will
+  take you to the project board.  However, if you suffix the slug with
+  an issuenumber (e.g. =FOOBAR-123=) it will take you directly to the
+  issue instead.
+
+  Sometimes, you don't need the page to be opened, but you need the
+  actual link instead.
+  - Prefixing this command a single time (=C-u C-c j j=) will send the
+    link to the kill-ring instead.
+  - Prefixing it twice (=C-u C-u C-c j j=) will insert an org-mode
+    link into the current buffer.
+
+** Configuration
+  This package uses a single configuration alist containing the
+  required details for every instance.
+
+#+begin_src emacs-lisp :tangle no
+;; configure the instances and their slugs
+(setq jira-jump--projects
+      '(("Client A" . ((instance . "https://client_a.atlassian.net")
+                       (projects . ("FOO" "BAR"))))
+        ("Client B" . ((instance . "https://client_b.atlassian.net")
+                       (projects . ("GARDN" "LIVINGRM" "KITCHN"))))
+        ("Internal" . ((instance . "https://my-company.atlassian.net")
+                       (projects . ("DEVIMPR" "ONBOARDNG" "SUPPRT"))))))
+#+end_src
+
+* Code
+  :PROPERTIES:
+  :header-args:emacs-lisp: :tangle jira-jump.el
+  :END:
+
+We'll start of with a few lines of comments, as this might as well be
+a simple package.
+
+  #+begin_src emacs-lisp
+;;; jira-jump.el --- Quickly jump to a Jira issue or board.  -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2023 Jeroen Faijdherbe.
+
+;; Author: J. Faijdherbe <jeroen@faijdherbe.net>
+;; Version: 1.0
+;; Created: 3 Feb 2023
+;; Keywords: jira, browser, org-mode
+;; URL: https://github.com/faijdherbe/jira-jump.el
+
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
+
+;; This package provides a simple interactive function that allows you
+;; to open any known project or issue in your browser.
+
+;;; Code:
+  #+end_src
+
+First we define our configurable variable =jira-jump--projects=.  This
+alist is the source for determining the instance we will redirect to
+user to.
+
+#+begin_src emacs-lisp
+(defvar jira-jump--projects
+  '()
+  "Alist of Jira projects per host. This doc needs to be expanded.")
+#+end_src
+
+The following methods extract specific data from the configuration
+based on given input.
+
+#+begin_src emacs-lisp
+(defun jira-jump--tag-for-issue (issue)
+  "Returns the TAG part of a Jira ISSUE.  Currently it splits the
+given ISSUE on the - character, and returns the car of the
+result.  We might want to change this to a regex match, grabbing
+all alpha characters from the start of the string. "
+  (upcase (car (split-string issue "-"))))
+
+(defun jira-jump--get-project (tag)
+  "Looks up the jira project in jira-jump--projects based on TAG.
+Returns nil if nothing is found."
+  (let ((data nil))
+    (dolist (project jira-jump--projects)
+      (if (member tag (alist-get 'projects (cdr project)))
+          (setq data project)))
+    data))
+
+(defun jira-jump--make-link (issue)
+  "Creates url to correct Jira instance base on TAG in ISSUE (the
+part before the -).  Returns nil if no project can be found for
+given issue."
+  (let* ((tag (jira-jump--tag-for-issue issue))
+         (project (jira-jump--get-project tag))
+         (instance (alist-get 'instance (cdr project))))
+    (cond (instance (concat instance "/browse/" issue))
+          (t nil))))
+#+end_src
+
+When querying the user for a Jira issue, we want to provide all
+available projects.  This method will grab all configured projects
+and return it as a flattened list.
+
+#+begin_src emacs-lisp
+(defun jira-jump--all-project-tags ()
+  "Collects all project tags from all configured instances in
+=jira-jump--projects=."
+  (apply #'append (mapcar (lambda (project)
+                            (alist-get 'projects project))
+                          jira-jump--projects)))
+
+
+#+end_src
+
+With all prerequisites in place we can now define our interactive method.
+This methods will accept one or two prefix arguments.  When no prefix
+argument is supplied, the default behaviour is triggered an the link
+will be sent to the default browser.  A single prefix argument will
+add the link to the kill-ring, available for yanking anywhere you want
+(e.g. in your Slack conversation).  A double prefix argument will
+insert an org-mode formatted link into the current buffer.
+
+#+begin_src emacs-lisp
+(defun jira-jump (arg)
+  "Open jira issue in browser.  A single prefix command will send
+the link to the kill ring and a double prefix argument will
+insert an org-mode link at point."
+  (interactive "P")
+  (let* ((issue (completing-read "Issue: " (jira-jump--all-project-tags)))
+         (link (jira-jump--make-link issue)))
+    (cond ((= 4 (prefix-numeric-value arg))
+           (kill-new link)
+           (message (format "Stored Jira link to issue %s (%s) in kill-ring."
+                            issue
+                            link)))
+          ((= 16 (prefix-numeric-value arg))
+           (insert (format "[[%s][%s]]"
+                           link
+                           issue)))
+          (t
+           (message (format "Opening issue %s in browser..." issue))
+           (browse-url-default-browser link)))))
+#+end_src
+
+Assign the link builder to the ~jira:~ prefix in org-mode links.  This
+will make links like =[[jira:FOOBAR-21]]= link directly to the Jira
+pages.
+
+#+begin_src emacs-lisp
+(add-to-list 'org-link-abbrev-alist
+             '("jira" . "%(jira-jump--make-link)"))
+
+#+END_src
+
+Bind a key to the =jira-jump= function.  By default this is mapped to
+=C-c j j=.
+#+begin_src emacs-lisp
+(bind-key "C-c j j" #'jira-jump)
+#+end_src
+
+And then some closing comments.
+#+begin_src emacs-lisp
+(provide 'jira-jump)
+;;; jira-jump.el ends here
+#+end_src
