@@ -3,7 +3,7 @@
 ;; Copyright (C) 2023 Jeroen Faijdherbe.
 
 ;; Author: J. Faijdherbe <jeroen@faijdherbe.net>
-;; Version: 1.0
+;; Version: 1.1
 ;; Created: 3 Feb 2023
 ;; Keywords: jira, browser, org-mode
 ;; URL: https://github.com/faijdherbe/jira-jump.el
@@ -54,12 +54,15 @@ given issue."
                             (alist-get 'projects project))
                           jira-jump--projects)))
 
+(defun jira-jump--read-issue ()
+  (completing-read "Issue: " (jira-jump--all-project-tags)))
+
 (defun jira-jump (arg)
   "Open jira issue in browser.  A single prefix command will send
 the link to the kill ring and a double prefix argument will
 insert an org-mode link at point."
   (interactive "P")
-  (let* ((issue (completing-read "Issue: " (jira-jump--all-project-tags)))
+  (let* ((issue (jira-jump--read-issue))
          (link (jira-jump--make-link issue)))
     (cond ((= 4 (prefix-numeric-value arg))
            (kill-new link)

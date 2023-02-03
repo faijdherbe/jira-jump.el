@@ -12,9 +12,9 @@ these functions obsolete I will update this post accordingly.
 #+end_quote
 
 * Jira Jump
-  At the company I work we work on multiple projects and those
+  At the company I work at we work on multiple projects and those
   projects belong to multiple clients.  As a result we have a
-  multitude of Jira board spread across multiple Jira instances.
+  multitude of Jira boards spread across multiple Jira instances.
   Sometimes I just want to be able to quickly jump to either a
   specific issue (when a coworker mentions it on a video call) or to
   the board itself.  This package will give me access to both at
@@ -64,7 +64,7 @@ these functions obsolete I will update this post accordingly.
   :header-args:emacs-lisp: :tangle jira-jump.el
   :END:
 
-We'll start of with a few lines of comments, as this might as well be
+We'll start off with a few lines of comments, as this might as well be
 a simple package.
 
   #+begin_src emacs-lisp
@@ -73,7 +73,7 @@ a simple package.
 ;; Copyright (C) 2023 Jeroen Faijdherbe.
 
 ;; Author: J. Faijdherbe <jeroen@faijdherbe.net>
-;; Version: 1.0
+;; Version: 1.1
 ;; Created: 3 Feb 2023
 ;; Keywords: jira, browser, org-mode
 ;; URL: https://github.com/faijdherbe/jira-jump.el
@@ -144,6 +144,18 @@ and return it as a flattened list.
 
 #+end_src
 
+All parsing methods and providers are now in place.  Next we need to
+retrieve information from the user about what board or issue he would
+like to visit.  For the time being, we simply query the user for the
+issue, providing all available project tags as the completion list.
+In the future, this might need to become a multi-step input method
+with smarter completion incorporated.
+
+#+begin_src emacs-lisp
+(defun jira-jump--read-issue ()
+  (completing-read "Issue: " (jira-jump--all-project-tags)))
+#+end_src
+
 With all prerequisites in place we can now define our interactive method.
 This methods will accept one or two prefix arguments.  When no prefix
 argument is supplied, the default behaviour is triggered an the link
@@ -158,7 +170,7 @@ insert an org-mode formatted link into the current buffer.
 the link to the kill ring and a double prefix argument will
 insert an org-mode link at point."
   (interactive "P")
-  (let* ((issue (completing-read "Issue: " (jira-jump--all-project-tags)))
+  (let* ((issue (jira-jump--read-issue))
          (link (jira-jump--make-link issue)))
     (cond ((= 4 (prefix-numeric-value arg))
            (kill-new link)
@@ -186,11 +198,13 @@ pages.
 
 Bind a key to the =jira-jump= function.  By default this is mapped to
 =C-c j j=.
+
 #+begin_src emacs-lisp
 (bind-key "C-c j j" #'jira-jump)
 #+end_src
 
 And then some closing comments.
+
 #+begin_src emacs-lisp
 (provide 'jira-jump)
 ;;; jira-jump.el ends here
