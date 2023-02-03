@@ -1,6 +1,6 @@
 #+TITLE: Jira Jump
-#+DATE: 2023-02-03T10:02:31+01:00
-#+DRAFT: true
+#+DATE: 2023-02-03T17:00:00+01:00
+#+DRAFT: false
 #+PROPERTY: header-args:emacs-lisp :comments link :results none
 
 #+begin_quote
@@ -38,19 +38,22 @@ these functions obsolete I will update this post accordingly.
   - Prefixing it twice (=C-u C-u C-c j j=) will insert an org-mode
     link into the current buffer.
 
-** Configuration
-  This package uses a single configuration alist containing the
-  required details for every instance.
+** Installation
+   You can install this package using straight.  Configure
+   =jira-jump--projects= as shown in the example below. 
 
 #+begin_src emacs-lisp :tangle no
-;; configure the instances and their slugs
-(setq jira-jump--projects
-      '(("Client A" . ((instance . "https://client_a.atlassian.net")
-                       (projects . ("FOO" "BAR"))))
-        ("Client B" . ((instance . "https://client_b.atlassian.net")
-                       (projects . ("GARDN" "LIVINGRM" "KITCHN"))))
-        ("Internal" . ((instance . "https://my-company.atlassian.net")
-                       (projects . ("DEVIMPR" "ONBOARDNG" "SUPPRT"))))))
+(use-package jira-jump
+  :ensure
+  :straight (jira-jump :repo "https://github.com/faijdherbe/jira-jump.el")
+  :config
+  (setq jira-jump--projects
+        '(("Client A" . ((instance . "https://client_a.atlassian.net")
+                         (projects . ("FOO" "BAR"))))
+          ("Client B" . ((instance . "https://client_b.atlassian.net")
+                         (projects . ("GARDN" "LIVINGRM" "KITCHN"))))
+          ("Internal" . ((instance . "https://my-company.atlassian.net")
+                         (projects . ("DEVIMPR" "ONBOARDNG" "SUPPRT")))))))
 #+end_src
 
 * Code
