@@ -17,14 +17,15 @@ these functions obsolete I will update this post accordingly.
   multitude of Jira board spread across multiple Jira instances.
   Sometimes I just want to be able to quickly jump to either a
   specific issue (when a coworker mentions it on a video call) or to
-  the board itself.
+  the board itself.  This package will give me access to both at
+  lightning speed, without having to navigate that great Jira UI.
 
   The code for this project can also be found at [[https://github.com/faijdherbe/jira-jump.el][GitHub]].
 
 ** Usage
   To open an issue or the board itself, press =C-c j j= (or =M-x
-  jira-link-dwim ENTER=) in any buffer, and it will open the page in
-  your default browser.
+  jira-jump RET=) in any buffer, and it will open the page in your
+  default browser.
 
   When you invoke this command the commandline will query you for the
   project slug of which the completion has been prefilled with all
@@ -42,7 +43,7 @@ these functions obsolete I will update this post accordingly.
 
 ** Installation
    You can install this package using straight.  Configure
-   =jira-jump--projects= as shown in the example below. 
+   =jira-jump--projects= as shown in the example below.
 
 #+begin_src emacs-lisp :tangle no
 (use-package jira-jump
