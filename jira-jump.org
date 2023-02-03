@@ -19,6 +19,8 @@ these functions obsolete I will update this post accordingly.
   specific issue (when a coworker mentions it on a video call) or to
   the board itself.
 
+  The code for this project can also be found at [[https://github.com/faijdherbe/jira-jump.el][GitHub]].
+
 ** Usage
   To open an issue or the board itself, press =C-c j j= (or =M-x
   jira-link-dwim ENTER=) in any buffer, and it will open the page in
