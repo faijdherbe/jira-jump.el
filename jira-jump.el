@@ -57,25 +57,43 @@ given issue."
 (defun jira-jump--read-issue ()
   (completing-read "Issue: " (jira-jump--all-project-tags)))
 
+(defun jira-jump-send-to-kill-ring ()
+  ""
+  (interactive)
+  (let* ((issue (jira-jump--read-issue))
+         (link (jira-jump--make-link issue)))
+    (kill-new link)
+    (message (format "Stored Jira link to issue %s (%s) in kill-ring."
+                     issue
+                     link))))
+      
+(defun jira-jump-insert-org-mode-link ()
+  ""
+  (interactive)
+  (let* ((issue (jira-jump--read-issue))
+         (link (jira-jump--make-link issue)))
+    (insert (format "[[%s][%s]]"
+                           link
+                           issue))))
+
+(defun jira-jump-open-in-browser ()
+  ""
+  (interactive)
+  (let* ((issue (jira-jump--read-issue))
+         (link (jira-jump--make-link issue)))
+    (message (format "Opening issue %s in browser..." issue))
+           (browse-url-default-browser link)))
+
 (defun jira-jump (arg)
   "Open jira issue in browser.  A single prefix command will send
 the link to the kill ring and a double prefix argument will
 insert an org-mode link at point."
   (interactive "P")
-  (let* ((issue (jira-jump--read-issue))
-         (link (jira-jump--make-link issue)))
-    (cond ((= 4 (prefix-numeric-value arg))
-           (kill-new link)
-           (message (format "Stored Jira link to issue %s (%s) in kill-ring."
-                            issue
-                            link)))
-          ((= 16 (prefix-numeric-value arg))
-           (insert (format "[[%s][%s]]"
-                           link
-                           issue)))
-          (t
-           (message (format "Opening issue %s in browser..." issue))
-           (browse-url-default-browser link)))))
+  (cond ((= 4 (prefix-numeric-value arg))
+         (jira-jump-send-to-kill-ring))
+        ((= 16 (prefix-numeric-value arg))
+         (jira-jump-insert-org-mode-link))
+        (t (jira-jump-open-in-browser))))
 
 (add-to-list 'org-link-abbrev-alist
              '("jira" . "%(jira-jump--make-link)"))
