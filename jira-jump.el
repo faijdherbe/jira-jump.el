@@ -80,7 +80,5 @@ insert an org-mode link at point."
 (add-to-list 'org-link-abbrev-alist
              '("jira" . "%(jira-jump--make-link)"))
 
-(bind-key "C-c j j" #'jira-jump)
-
 (provide 'jira-jump)
 ;;; jira-jump.el ends here

@@ -49,6 +49,7 @@ these functions obsolete I will update this post accordingly.
 (use-package jira-jump
   :ensure
   :straight (jira-jump :repo "https://github.com/faijdherbe/jira-jump.el")
+  :bind (("C-c j j" . jira-jump)
   :config
   (setq jira-jump--projects
         '(("Client A" . ((instance . "https://client_a.atlassian.net")
@@ -193,15 +194,8 @@ pages.
 #+begin_src emacs-lisp
 (add-to-list 'org-link-abbrev-alist
              '("jira" . "%(jira-jump--make-link)"))
-
-#+END_src
-
-Bind a key to the =jira-jump= function.  By default this is mapped to
-=C-c j j=.
-
-#+begin_src emacs-lisp
-(bind-key "C-c j j" #'jira-jump)
 #+end_src
+
 
 And then some closing comments.
 
