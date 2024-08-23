@@ -187,13 +187,22 @@ insert an org-mode formatted link into the current buffer.
                            link
                            issue))))
 
-(defun jira-jump-open-in-browser ()
+(defun jira-jump-open-in-browser (&optional issue)
   ""
   (interactive)
-  (let* ((issue (jira-jump--read-issue))
+  (let* ((issue (or issue (jira-jump--read-issue)))
          (link (jira-jump--make-link issue)))
     (message (format "Opening issue %s in browser..." issue))
            (browse-url-default-browser link)))
+
+
+(defun jira-jump-issue-at-point ()
+  (interactive)
+  (let* ((bounds (bounds-of-thing-at-point 'symbol))
+         (lpos (car bounds))
+         (rpos (cdr bounds))
+         (issue (buffer-substring-no-properties rpos lpos)))
+    (jira-jump-open-in-browser issue)))
 
 (defun jira-jump (arg)
   "Open jira issue in browser.  A single prefix command will send
