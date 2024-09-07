@@ -34,7 +34,7 @@ Returns nil if nothing is found."
   (let ((data nil))
     (dolist (project jira-jump--projects)
       (if (member tag (alist-get 'projects (cdr project)))
-          (setq data project)))
+	  (setq data project)))
     data))
 
 (defun jira-jump--make-link (issue)
@@ -42,17 +42,70 @@ Returns nil if nothing is found."
 part before the -).  Returns nil if no project can be found for
 given issue."
   (let* ((tag (jira-jump--tag-for-issue issue))
-         (project (jira-jump--get-project tag))
-         (instance (alist-get 'instance (cdr project))))
+	 (project (jira-jump--get-project tag))
+	 (instance (alist-get 'instance (cdr project))))
     (cond (instance (concat instance "/browse/" issue))
-          (t nil))))
+	  (t nil))))
 
 (defun jira-jump--all-project-tags ()
   "Collects all project tags from all configured instances in
 =jira-jump--projects=."
   (apply #'append (mapcar (lambda (project)
-                            (alist-get 'projects project))
-                          jira-jump--projects)))
+			    (alist-get 'projects project))
+			  jira-jump--projects)))
 
 (defun jira-jump--read-issue ()
   (completing-read "Issue: " (jira-jump--all-project-tags)))
+
+(defun jira-jump-send-to-kill-ring ()
+  ""
+  (interactive)
+  (let* ((issue (jira-jump--read-issue))
+	 (link (jira-jump--make-link issue)))
+    (kill-new link)
+    (message (format "Stored Jira link to issue %s (%s) in kill-ring."
+		     issue
+		     link))))
+
+(defun jira-jump-insert-org-mode-link ()
+  ""
+  (interactive)
+  (let* ((issue (jira-jump--read-issue))
+	 (link (jira-jump--make-link issue)))
+    (insert (format "[[%s][%s]]"
+			   link
+			   issue))))
+
+(defun jira-jump-open-in-browser (&optional issue)
+  ""
+  (interactive)
+  (let* ((issue (or issue (jira-jump--read-issue)))
+	 (link (jira-jump--make-link issue)))
+    (message (format "Opening issue %s in browser..." issue))
+	   (browse-url-default-browser link)))
+
+
+(defun jira-jump-issue-at-point ()
+  (interactive)
+  (let* ((bounds (bounds-of-thing-at-point 'symbol))
+	 (lpos (car bounds))
+	 (rpos (cdr bounds))
+	 (issue (buffer-substring-no-properties rpos lpos)))
+    (jira-jump-open-in-browser issue)))
+
+(defun jira-jump (arg)
+  "Open jira issue in browser.  A single prefix command will send
+the link to the kill ring and a double prefix argument will
+insert an org-mode link at point."
+  (interactive "P")
+  (cond ((= 4 (prefix-numeric-value arg))
+	 (jira-jump-send-to-kill-ring))
+	((= 16 (prefix-numeric-value arg))
+	 (jira-jump-insert-org-mode-link))
+	(t (jira-jump-open-in-browser))))
+
+(add-to-list 'org-link-abbrev-alist
+	     '("jira" . "%(jira-jump--make-link)"))
+
+(provide 'jira-jump)
+;;; jira-jump.el ends here

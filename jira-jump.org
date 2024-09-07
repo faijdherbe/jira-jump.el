@@ -50,16 +50,16 @@ these functions obsolete I will update this post accordingly.
   :ensure
   :straight (jira-jump :repo "https://github.com/faijdherbe/jira-jump.el")
   :bind (("C-c j j" . jira-jump-open-in-browser)
-         ("C-c j w" . jira-jump-send-to-kill-ring)
-         ("C-c j l" . jira-jump-insert-org-mode-link))
+	 ("C-c j w" . jira-jump-send-to-kill-ring)
+	 ("C-c j l" . jira-jump-insert-org-mode-link))
   :config
   (setq jira-jump--projects
-        '(("Client A" . ((instance . "https://client_a.atlassian.net")
-                         (projects . ("FOO" "BAR"))))
-          ("Client B" . ((instance . "https://client_b.atlassian.net")
-                         (projects . ("GARDN" "LIVINGRM" "KITCHN"))))
-          ("Internal" . ((instance . "https://my-company.atlassian.net")
-                         (projects . ("DEVIMPR" "ONBOARDNG" "SUPPRT")))))))
+	'(("Client A" . ((instance . "https://client_a.atlassian.net")
+			 (projects . ("FOO" "BAR"))))
+	  ("Client B" . ((instance . "https://client_b.atlassian.net")
+			 (projects . ("GARDN" "LIVINGRM" "KITCHN"))))
+	  ("Internal" . ((instance . "https://my-company.atlassian.net")
+			 (projects . ("DEVIMPR" "ONBOARDNG" "SUPPRT")))))))
 #+end_src
 
 * Code
@@ -118,7 +118,7 @@ Returns nil if nothing is found."
   (let ((data nil))
     (dolist (project jira-jump--projects)
       (if (member tag (alist-get 'projects (cdr project)))
-          (setq data project)))
+	  (setq data project)))
     data))
 
 (defun jira-jump--make-link (issue)
@@ -126,10 +126,10 @@ Returns nil if nothing is found."
 part before the -).  Returns nil if no project can be found for
 given issue."
   (let* ((tag (jira-jump--tag-for-issue issue))
-         (project (jira-jump--get-project tag))
-         (instance (alist-get 'instance (cdr project))))
+	 (project (jira-jump--get-project tag))
+	 (instance (alist-get 'instance (cdr project))))
     (cond (instance (concat instance "/browse/" issue))
-          (t nil))))
+	  (t nil))))
 #+end_src
 
 When querying the user for a Jira issue, we want to provide all
@@ -141,8 +141,8 @@ and return it as a flattened list.
   "Collects all project tags from all configured instances in
 =jira-jump--projects=."
   (apply #'append (mapcar (lambda (project)
-                            (alist-get 'projects project))
-                          jira-jump--projects)))
+			    (alist-get 'projects project))
+			  jira-jump--projects)))
 
 
 #+end_src
@@ -172,36 +172,36 @@ insert an org-mode formatted link into the current buffer.
   ""
   (interactive)
   (let* ((issue (jira-jump--read-issue))
-         (link (jira-jump--make-link issue)))
+	 (link (jira-jump--make-link issue)))
     (kill-new link)
     (message (format "Stored Jira link to issue %s (%s) in kill-ring."
-                     issue
-                     link))))
-      
+		     issue
+		     link))))
+
 (defun jira-jump-insert-org-mode-link ()
   ""
   (interactive)
   (let* ((issue (jira-jump--read-issue))
-         (link (jira-jump--make-link issue)))
+	 (link (jira-jump--make-link issue)))
     (insert (format "[[%s][%s]]"
-                           link
-                           issue))))
+			   link
+			   issue))))
 
 (defun jira-jump-open-in-browser (&optional issue)
   ""
   (interactive)
   (let* ((issue (or issue (jira-jump--read-issue)))
-         (link (jira-jump--make-link issue)))
+	 (link (jira-jump--make-link issue)))
     (message (format "Opening issue %s in browser..." issue))
-           (browse-url-default-browser link)))
+	   (browse-url-default-browser link)))
 
 
 (defun jira-jump-issue-at-point ()
   (interactive)
   (let* ((bounds (bounds-of-thing-at-point 'symbol))
-         (lpos (car bounds))
-         (rpos (cdr bounds))
-         (issue (buffer-substring-no-properties rpos lpos)))
+	 (lpos (car bounds))
+	 (rpos (cdr bounds))
+	 (issue (buffer-substring-no-properties rpos lpos)))
     (jira-jump-open-in-browser issue)))
 
 (defun jira-jump (arg)
@@ -210,11 +210,11 @@ the link to the kill ring and a double prefix argument will
 insert an org-mode link at point."
   (interactive "P")
   (cond ((= 4 (prefix-numeric-value arg))
-         (jira-jump-send-to-kill-ring))
-        ((= 16 (prefix-numeric-value arg))
-         (jira-jump-insert-org-mode-link))
-        (t (jira-jump-open-in-browser))))
-           
+	 (jira-jump-send-to-kill-ring))
+	((= 16 (prefix-numeric-value arg))
+	 (jira-jump-insert-org-mode-link))
+	(t (jira-jump-open-in-browser))))
+
 #+end_src
 
 Assign the link builder to the ~jira:~ prefix in org-mode links.  This
@@ -223,7 +223,7 @@ pages.
 
 #+begin_src emacs-lisp
 (add-to-list 'org-link-abbrev-alist
-             '("jira" . "%(jira-jump--make-link)"))
+	     '("jira" . "%(jira-jump--make-link)"))
 #+end_src
 
 
