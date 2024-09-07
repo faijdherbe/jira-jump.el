@@ -3,7 +3,7 @@
 ;; Copyright (C) 2023 Jeroen Faijdherbe.
 
 ;; Author: J. Faijdherbe <jeroen@faijdherbe.net>
-;; Version: 1.3
+;; Version: 1.4
 ;; Created: 3 Feb 2023
 ;; Keywords: jira, browser, org-mode
 ;; URL: https://github.com/faijdherbe/jira-jump.el
