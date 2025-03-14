@@ -82,7 +82,7 @@ given issue."
   (let* ((issue (or issue (jira-jump--read-issue)))
 	 (link (jira-jump--make-link issue)))
     (message (format "Opening issue %s in browser..." issue))
-	   (browse-url-default-browser link)))
+	   (browse-url link)))
 
 
 (defun jira-jump-issue-at-point ()
